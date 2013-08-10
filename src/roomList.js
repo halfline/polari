@@ -129,6 +129,8 @@ const RoomList = new Lang.Class({
         this.widget.set_selection_mode(Gtk.SelectionMode.BROWSE);
         this.widget.set_header_func(Lang.bind(this, this._updateHeader));
         this.widget.set_sort_func(Lang.bind(this, this._sort));
+        let context = this.widget.get_style_context();
+        context.add_class('view');
 
         this._roomRows = {};
         this._selectedRows = 0;
