@@ -17,6 +17,8 @@ const UserList = new Lang.Class({
         this._list.set_selection_mode(Gtk.SelectionMode.NONE);
         this._list.set_header_func(Lang.bind(this, this._updateHeader));
         this._list.set_sort_func(Lang.bind(this, this._sort));
+        let context = this._list.get_style_context();
+        context.add_class('view');
 
         this._room = room;
 
