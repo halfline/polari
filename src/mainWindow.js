@@ -12,6 +12,7 @@ const IrcParser = imports.ircParser;
 const JoinDialog = imports.joinDialog;
 const Lang = imports.lang;
 const Mainloop = imports.mainloop;
+const MessageDialog = imports.messageDialog;
 const RoomList = imports.roomList;
 const UserList = imports.userList;
 
@@ -326,6 +327,16 @@ const MainWindow = new Lang.Class({
 
     showJoinRoomDialog: function() {
         let dialog = new JoinDialog.JoinDialog();
+        dialog.widget.transient_for = this.window;
+        dialog.widget.show();
+        dialog.widget.connect('response',
+            function(widget) {
+                widget.destroy();
+            });
+    },
+
+    showMessageUserDialog: function() {
+        let dialog = new MessageDialog.MessageDialog();
         dialog.widget.transient_for = this.window;
         dialog.widget.show();
         dialog.widget.connect('response',
