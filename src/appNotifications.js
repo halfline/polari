@@ -122,6 +122,34 @@ const ConnectingNotification = new Lang.Class({
     }
 });
 
+const NicknameErrorNotification = new Lang.Class({
+    Name: 'NicknameErrorNotification',
+    Extends: AppNotification,
+
+    _init: function(error) {
+        this.parent();
+
+        this._grid = new Gtk.Grid({ orientation: Gtk.Orientation.HORIZONTAL,
+                                    column_spacing: 12 });
+
+        this._grid.add(new Gtk.Spinner({ active: true }));
+
+        let text = error;
+        let label = new Gtk.Label({ label: text });
+        this._grid.add(label);
+
+        this.widget.add(this._grid);
+        this.widget.show_all();
+
+        Gtk.timeout_add(3, _onTimeout, null);
+    },
+
+    _onTimeout: function() {
+        this.close();
+        return false;
+    }
+});
+
 const NotificationQueue = new Lang.Class({
     Name: 'NotificationQueue',
 
