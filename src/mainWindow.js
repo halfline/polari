@@ -9,6 +9,7 @@ const AppNotifications = imports.appNotifications;
 const ChatroomManager = imports.chatroomManager;
 const ChatView = imports.chatView;
 const IrcParser = imports.ircParser;
+const InitialSetupWindow = imports.initialSetupWindow;
 const JoinDialog = imports.joinDialog;
 const Lang = imports.lang;
 const Mainloop = imports.mainloop;
@@ -147,6 +148,10 @@ const MainWindow = new Lang.Class({
         this._updateSensitivity();
 
         this.window.show_all();
+
+        //if(this._accountsMonitor.dupAccounts().length == 0) {
+            let initialSetupWindow = new InitialSetupWindow.InitialSetupWindow();
+        //}
     },
 
     _onWindowStateEvent: function(widget, event) {
@@ -300,7 +305,12 @@ const MainWindow = new Lang.Class({
         account.set_nickname_async(nick, Lang.bind(this,
             function(a, res) {
                 try {
-                    a.set_nickname_finish(res);
+                    log("testing");
+                    log(a);
+                    log(res);
+                    log("End testing");
+                    let value = a.set_nickname_finish(res);
+                    log(value);
                 } catch(e) {
                     logError(e, "Failed to change nick");
 

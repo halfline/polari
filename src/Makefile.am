@@ -34,6 +34,7 @@ dist_js_DATA = \
 	chatView.js \
 	connections.js \
 	ircParser.js \
+	initialSetupWindow.js \
 	joinDialog.js \
 	main.js \
 	mainWindow.js \
