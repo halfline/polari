@@ -53,12 +53,22 @@ nodist_js_DATA = \
 	config.js \
 	$(NULL)
 
+resource_files=$(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir) --generate-dependencies $(srcdir)/polari.gresource.xml)
+polari.gresource: polari.gresource.xml $(resource_files)
+	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --target=$@ --sourcedir=$(srcdir) $<
+
+resourcedir=$(pkgdatadir)
+resource_DATA=polari.gresource
+
 EXTRA_DIST += \
 	config.js.in \
+	polari.gresource.xml \
 	polari.in \
+	$(resource_files) \
 	$(NULL)
 
 CLEANFILES += \
 	config.js \
 	polari \
+	$(resource_DATA) \
 	$(NULL)

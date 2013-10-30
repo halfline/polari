@@ -1,12 +1,12 @@
 data/appdata/org.gnome.Polari.appdata.xml.in
 data/org.gnome.polari.gschema.xml
 data/org.gnome.Polari.desktop.in
-[type: gettext/glade]data/resources/app-menu.ui
-[type: gettext/glade]data/resources/connection-details-dialog.ui
-[type: gettext/glade]data/resources/connection-list-dialog.ui
-[type: gettext/glade]data/resources/join-room-dialog.ui
-[type: gettext/glade]data/resources/main-window.ui
-[type: gettext/glade]data/resources/message-user-dialog.ui
+[type: gettext/glade]src/resources/app-menu.ui
+[type: gettext/glade]src/resources/connection-details-dialog.ui
+[type: gettext/glade]src/resources/connection-list-dialog.ui
+[type: gettext/glade]src/resources/join-room-dialog.ui
+[type: gettext/glade]src/resources/main-window.ui
+[type: gettext/glade]src/resources/message-user-dialog.ui
 src/application.js
 src/chatView.js
 src/connections.js
