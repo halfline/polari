@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/org/gnome/polari">
+    <!-- data -->
     <file alias="app-menu.ui" preprocess="xml-stripblanks">resources/app-menu.ui</file>
     <file alias="connection-details-dialog.ui" preprocess="xml-stripblanks">resources/connection-details-dialog.ui</file>
     <file alias="connection-list-dialog.ui" preprocess="xml-stripblanks">resources/connection-list-dialog.ui</file>
@@ -8,5 +9,24 @@
     <file alias="main-window.ui" preprocess="xml-stripblanks">resources/main-window.ui</file>
     <file alias="message-user-dialog.ui" preprocess="xml-stripblanks">resources/message-user-dialog.ui</file>
     <file alias="application.css">resources/application.css</file>
+    <!-- sources -->
+    <file>accountsMonitor.js</file>
+    <file>application.js</file>
+    <file>appNotifications.js</file>
+    <file>chatroomManager.js</file>
+    <file>chatView.js</file>
+    <file>config.js</file>
+    <file>connections.js</file>
+    <file>ircParser.js</file>
+    <file>joinDialog.js</file>
+    <file>main.js</file>
+    <file>mainWindow.js</file>
+    <file>messageDialog.js</file>
+    <file>notify.js</file>
+    <file>pasteManager.js</file>
+    <file>roomList.js</file>
+    <file>tabCompletion.js</file>
+    <file>userList.js</file>
+    <file>utils.js</file>
   </gresource>
 </gresources>

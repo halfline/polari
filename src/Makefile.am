@@ -1,6 +1,7 @@
 EXTRA_DIST =
 CLEANFILES =
 INTROSPECTION_GIRS =
+BUILT_SOURCES =
 
 girdir = $(pkgdatadir)/gir-1.0
 typelibdir = $(pkglibdir)/girepository-1.0
@@ -20,33 +21,8 @@ do_subst = sed -e 's|@localedir[@]|$(localedir)|g' \
                -e 's|@PACKAGE_VERSION[@]|$(PACKAGE_VERSION)|g' \
                $(NULL)
 
-jsdir = $(pkgdatadir)/js/
-dist_js_DATA = \
-	accountsMonitor.js \
-	application.js \
-	appNotifications.js \
-	chatroomManager.js \
-	chatView.js \
-	connections.js \
-	ircParser.js \
-	joinDialog.js \
-	main.js \
-	mainWindow.js \
-	messageDialog.js \
-	notify.js \
-	pasteManager.js \
-	roomList.js \
-	tabCompletion.js \
-	userList.js \
-	utils.js \
-	$(NULL)
-
 config.js: config.js.in Makefile
 	$(AM_V_GEN) $(do_subst) $< > $@
-
-nodist_js_DATA = \
-	config.js \
-	$(NULL)
 
 bin_PROGRAMS = polari
 
@@ -54,9 +30,12 @@ polari_SOURCES = \
 	polari.c \
 	$(NULL)
 
+nodist_polari_SOURCES = \
+	$(resource_built_sources)	\
+	$(NULL)
+
 AM_CPPFLAGS = \
 	-DPOLARI_TYPELIBDIR=\""$(pkglibdir)/girepository-1.0"\" \
-	-DPOLARI_JSDIR=\""$(pkglibdir)/js"\" \
 	-DLOCALEDIR=\""$(datadir)/locale"\" \
 	-DGETTEXT_PACKAGE=\""$(GETTEXT_PACKAGE)"\" \
 	$(POLARI_CFLAGS) \
@@ -68,19 +47,25 @@ polari_LDADD = \
 	$(NULL)
 
 resource_files=$(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir) --generate-dependencies $(srcdir)/polari.gresource.xml)
-polari.gresource: polari.gresource.xml $(resource_files)
-	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --target=$@ --sourcedir=$(srcdir) $<
+resources.h: polari.gresource.xml $(resource_files) config.js
+	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --target=$@ --sourcedir=$(srcdir) --sourcedir=$(builddir) --generate --c-name polari_resources $<
+resources.c: polari.gresource.xml $(resource_files) config.js
+	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --target=$@ --sourcedir=$(srcdir) --sourcedir=$(builddir) --generate --c-name polari_resources $<
 
-resourcedir=$(pkgdatadir)
-resource_DATA=polari.gresource
+resource_built_sources = resources.h resources.c
+
+BUILT_SOURCES += $(resource_built_sources)
+
+resource_dist_files = $(filter-out config.js, $(resource_files))
 
 EXTRA_DIST += \
 	config.js.in \
+	$(resource_dist_files) \
 	polari.gresource.xml \
 	$(resource_files) \
 	$(NULL)
 
 CLEANFILES += \
 	config.js \
-	$(resource_DATA) \
+	$(resource_built_sources)
 	$(NULL)

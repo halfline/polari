@@ -4,7 +4,7 @@
 int
 main (int argc, char *argv)
 {
-  const char *search_path[] = { POLARI_JSDIR, NULL };
+  const char *search_path[] = { "resource:///org/gnome/polari", NULL };
   GError *error = NULL;
   GjsContext *context;
   int status;

@@ -1,2 +1,1 @@
-const RESOURCE_DIR = "@pkgdatadir@";
 const PACKAGE_VERSION = "@PACKAGE_VERSION@";

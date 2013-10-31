@@ -38,4 +38,5 @@ po/polari.pot
 po/stamp-it
 src/*.gresource
 src/config.js
+src/resources.[ch]
 src/polari

@@ -47,9 +47,6 @@ const Application = new Lang.Class({
         let w = new Polari.FixedSizeFrame(); // register gtype
         w.destroy();
 
-        let resource = Gio.Resource.load(Config.RESOURCE_DIR + '/polari.gresource');
-        resource._register();
-
         this._chatroomManager = ChatroomManager.getDefault();
         this._accountsMonitor = AccountsMonitor.getDefault();
 
