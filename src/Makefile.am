@@ -20,11 +20,6 @@ do_subst = sed -e 's|@localedir[@]|$(localedir)|g' \
                -e 's|@PACKAGE_VERSION[@]|$(PACKAGE_VERSION)|g' \
                $(NULL)
 
-bin_SCRIPTS = polari
-
-polari: polari.in
-	$(AM_V_GEN) $(do_subst) $< > $@
-
 jsdir = $(pkgdatadir)/js/
 dist_js_DATA = \
 	accountsMonitor.js \
@@ -53,6 +48,25 @@ nodist_js_DATA = \
 	config.js \
 	$(NULL)
 
+bin_PROGRAMS = polari
+
+polari_SOURCES = \
+	polari.c \
+	$(NULL)
+
+AM_CPPFLAGS = \
+	-DPOLARI_TYPELIBDIR=\""$(pkglibdir)/girepository-1.0"\" \
+	-DPOLARI_JSDIR=\""$(pkglibdir)/js"\" \
+	-DLOCALEDIR=\""$(datadir)/locale"\" \
+	-DGETTEXT_PACKAGE=\""$(GETTEXT_PACKAGE)"\" \
+	$(POLARI_CFLAGS) \
+	$(NULL)
+
+polari_LDADD = \
+	$(POLARI_LIBS) \
+	libpolari-1.0.la \
+	$(NULL)
+
 resource_files=$(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir) --generate-dependencies $(srcdir)/polari.gresource.xml)
 polari.gresource: polari.gresource.xml $(resource_files)
 	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --target=$@ --sourcedir=$(srcdir) $<
@@ -63,12 +77,10 @@ resource_DATA=polari.gresource
 EXTRA_DIST += \
 	config.js.in \
 	polari.gresource.xml \
-	polari.in \
 	$(resource_files) \
 	$(NULL)
 
 CLEANFILES += \
 	config.js \
-	polari \
 	$(resource_DATA) \
 	$(NULL)

@@ -29,8 +29,6 @@ const Application = new Lang.Class({
     _init: function() {
         this.parent({ application_id: 'org.gnome.Polari' });
 
-        Gettext.bindtextdomain('polari', Config.LOCALE_DIR);
-        Gettext.textdomain('polari');
         GLib.set_prgname('polari');
         GLib.set_application_name('Polari');
         this._window = null;

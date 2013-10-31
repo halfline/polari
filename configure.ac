@@ -22,15 +22,10 @@ GLIB_GSETTINGS
 
 PKG_CHECK_MODULES(POLARI,
                   gio-2.0
+                  gjs-1.0
                   gobject-introspection-1.0
                   gtk+-3.0 >= 3.9.12
                   telepathy-glib);
-
-AC_PATH_PROG([GJS_CONSOLE],[gjs-console],[no])
-
-if test "$GJS_CONSOLE" = "no"; then
-  AC_MSG_ERROR([gjs is required to build Polari])
-fi
 
 GLIB_COMPILE_RESOURCES=`$PKG_CONFIG --variable=glib_compile_resources gio-2.0`
 AC_SUBST(GLIB_COMPILE_RESOURCES)
