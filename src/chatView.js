@@ -19,6 +19,8 @@ const SCROLL_TIMEOUT = 100; // ms
 const TIMESTAMP_INTERVAL = 300; // seconds of inactivity after which to
                                 // insert a timestamp
 
+const ACTIVITY_DURATION = 300 // min
+
 const NUM_INITIAL_LOG_EVENTS = 50; // number of log events to fetch on start
 const NUM_LOG_EVENTS = 10; // number of log events to fetch when requesting more
 
@@ -597,7 +599,7 @@ const ChatView = new Lang.Class({
 
         let channelSignals = [
             { name: 'message-received',
-              handler: Lang.bind(this, this._insertTpMessage) },
+              handler: Lang.bind(this, this._onMessageReceived) },
             { name: 'message-sent',
               handler: Lang.bind(this, this._insertTpMessage) },
             { name: 'pending-message-removed',
@@ -627,49 +629,80 @@ const ChatView = new Lang.Class({
     },
 
     _onMemberRenamed: function(room, oldMember, newMember) {
-        this._insertStatus(_("%s is now known as %s").format(oldMember.alias,
-                                                             newMember.alias));
+        if (this._shouldStatus(oldMember.alias)) {
+            this._insertStatus(_("%s is now known as %s").format(oldMember.alias,
+                                                                 newMember.alias));
+        }
         this._setNickStatus(oldMember.alias, Tp.ConnectionPresenceType.OFFLINE);
         this._setNickStatus(newMember.alias, Tp.ConnectionPresenceType.AVAILABLE);
     },
 
     _onMemberDisconnected: function(room, member, message) {
-        let text = _("%s has disconnected").format(member.alias);
-        if (message)
-            text += ' (%s)'.format(message);
-        this._insertStatus(text);
+        if (this._shouldStatus(member.alias)) {
+            let text = _("%s has disconnected").format(member.alias);
+            if (message)
+                text += ' (%s)'.format(message);
+            this._insertStatus(text);
+        }
         this._setNickStatus(member.alias, Tp.ConnectionPresenceType.OFFLINE);
     },
 
     _onMemberKicked: function(room, member, actor) {
-        let message =
-            actor ? _("%s has been kicked by %s").format(member.alias,
-                                                         actor.alias)
-                  : _("%s has been kicked").format(member.alias);
-        this._insertStatus(message);
+        if (this._shouldStatus(member.alias)) {
+            let message =
+                actor ? _("%s has been kicked by %s").format(member.alias,
+                                                             actor.alias)
+                      : _("%s has been kicked").format(member.alias);
+            this._insertStatus(message);
+        }
         this._setNickStatus(member.alias, Tp.ConnectionPresenceType.OFFLINE);
     },
 
     _onMemberBanned: function(room, member, actor) {
-        let message =
-            actor ? _("%s has been banned by %s").format(member.alias,
-                                                         actor.alias)
-                  : _("%s has been banned").format(member.alias)
-        this._insertStatus(message);
+        if (this._shouldStatus(member.alias)) {
+            let message =
+                actor ? _("%s has been banned by %s").format(member.alias,
+                                                             actor.alias)
+                      : _("%s has been banned").format(member.alias)
+            this._insertStatus(message);
+        }
         this._setNickStatus(member.alias, Tp.ConnectionPresenceType.OFFLINE);
     },
 
     _onMemberJoined: function(room, member) {
-        this._insertStatus(_("%s joined").format(member.alias));
+        if (this._shouldStatus(member.alias))
+            this._insertStatus(_("%s joined").format(member.alias));
         this._setNickStatus(member.alias, Tp.ConnectionPresenceType.AVAILABLE);
     },
 
     _onMemberLeft: function(room, member, message) {
-        let text = _("%s left").format(member.alias);
-        if (message)
-            text += ' (%s)'.format(message);
-        this._insertStatus(text);
+        if (this._shouldStatus(member.alias)) {
+            let text = _("%s left").format(member.alias);
+            if (message)
+                text += ' (%s)'.format(message);
+            this._insertStatus(text);
+        }
         this._setNickStatus(member.alias, Tp.ConnectionPresenceType.OFFLINE);
+    },
+
+    _onMessageReceived: function(room, tpMessage) {
+        this._insertTpMessage(room, tpMessage);
+
+        let nick = tpMessage.sender.alias;
+        let nickTag = this._lookupTag('nick' + nick);
+        if (!nickTag)
+           return;
+        nickTag._active = GLib.DateTime.new_now_utc().to_unix();
+    },
+
+    _shouldStatus: function(nick) {
+        let nickTag = this._lookupTag('nick' + nick);
+
+        if (!nickTag)
+            return false;
+
+        let time = GLib.DateTime.new_now_utc().to_unix();
+        return time - nickTag._active < ACTIVITY_DURATION;
     },
 
     _insertStatus: function(text) {
