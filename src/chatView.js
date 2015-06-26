@@ -184,6 +184,8 @@ const ChatView = new Lang.Class({
             left_margin: MARGIN },
           { name: 'url',
             underline: Pango.Underline.SINGLE },
+          { name: 'expandable',
+            underline: Pango.Underline.SINGLE },
           { name: 'loading',
             justification: Gtk.Justification.CENTER }
         ];
@@ -484,6 +486,7 @@ const ChatView = new Lang.Class({
         let tags = iter.get_tags();
         for (let i = 0; i < tags.length; i++) {
             let url = tags[i]._url;
+            let statusTexts = tags[i]._statusTexts;
             if (url) {
                 if (url.indexOf(':') == -1)
                     url = 'http://' + url;
@@ -499,6 +502,19 @@ const ChatView = new Lang.Class({
                     return Gdk.EVENT_STOP;
                 }
                 break;
+            } else if (statusTexts) {
+                let buffer = this._view.get_buffer();
+                let startIter = buffer.get_iter_at_line(iter.get_line());
+                let startMark = buffer.create_mark(null, iter, true);
+                let endMark = buffer.create_mark(null, iter, false);
+                iter.forward_to_line_end();
+                buffer.delete(startIter, iter);
+                statusTexts.forEach(Lang.bind(this, function(statusText) {
+                    buffer.insert(buffer.get_iter_at_mark(startMark), statusText + '\n', -1);
+                    let startIter = buffer.get_iter_at_mark(startMark);
+                    let endIter = buffer.get_iter_at_mark(endMark);
+                    buffer.apply_tag(this._lookupTag('status'), startIter, endIter);
+                }));
             }
         }
         return Gdk.EVENT_PROPAGATE;
@@ -512,7 +528,7 @@ const ChatView = new Lang.Class({
         let tags = iter.get_tags();
         let hovering = false;
         for (let i = 0; i < tags.length && !hovering; i++)
-            if (tags[i]._url)
+            if (tags[i]._url || tags[i]._statusTexts)
                 hovering = true;
 
         if (this._hoveringLink != hovering) {
