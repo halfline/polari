@@ -13,6 +13,7 @@ const MainWindow = imports.mainWindow;
 const PasteManager = imports.pasteManager;
 const Utils = imports.utils;
 
+const TP_CURRENT_TIME = GLib.MAXUINT32;
 
 const MAX_RETRIES = 3;
 
@@ -27,8 +28,7 @@ const Application = new Lang.Class({
 
     _init: function() {
         this.parent({ application_id: 'org.gnome.Polari' });
-
-        GLib.set_application_name('Polari');
+        this.set_flags(Gio.ApplicationFlags.HANDLES_OPEN);
         this._window = null;
         this._pendingRequests = {};
     },
@@ -47,11 +47,15 @@ const Application = new Lang.Class({
                 this._removeSavedChannelsForAccount(account);
             }));
 
+        this._accountsMonitor.connect('account-manager-prepared',
+                Lang.bind(this, this._parseArgs));
+
         this._settings = new Gio.Settings({ schema_id: 'org.gnome.Polari' });
 
         this.pasteManager = new PasteManager.PasteManager();
         this.notificationQueue = new AppNotifications.NotificationQueue();
         this.commandOutputQueue = new AppNotifications.CommandOutputQueue();
+        this._accountsMonitor = AccountsMonitor.getDefault();
 
         let actionEntries = [
           { name: 'room-menu',
@@ -128,18 +132,96 @@ const Application = new Lang.Class({
     },
 
     vfunc_activate: function() {
+        this._showMainWindow();
+    },
+
+    vfunc_open: function(args) {
+        this._args = args;
+        //this._showMainWindow();
+        //this._window.window.hide();
+        this._parseArgs();
+
+    },
+
+    _parseArgs: function() {
+        let args =  this._args;
+        let accounts = this._accountsMonitor.dupAccounts();
+        if (!args || accounts.length == 0 || args.length != 1) {
+            log('didnt pass check!' + ' accounts: ' + accounts.length + ', args: ' + args)
+            return;
+        }
+        this._args = null;
+        let uriRegEx = /^(irc?:\/\/)([\da-z\.-]+):?(\d+)?\/(?:%23)?([\w \. \+-]*)/;
+        try {
+            var [, , server, port, room] = args[0].get_uri().match(uriRegEx);
+            log('server: ' + server);
+            log('room: ' + room);
+            log('port: ' + port);
+        } catch (e) {
+            log('hitting catch block, uri was invalid');
+            let notification = new Gio.Notification();
+            notification.set_title("Polari could not open the IRC link.");
+            notification.set_body("Unable to parse  \"" +
+                                  args[0].get_uri() + "\".");
+            this.send_notification('irc-link' + args[0], notification);
+            return;
+        }
+        this._showMainWindow();
+        let account = null;
+        log('looking through accounts..');
+        for (let i = 0; i < accounts.length; i++) {
+            let params = accounts[i].dup_parameters_vardict().deep_unpack();
+            for (let p in params)
+                params[p] = params[p].deep_unpack();
+            log('checking ' + server + ' vs ' + params.server);
+            if (server == params.server) {
+                log('match!');
+                account = accounts[i];
+                break;
+            }
+        }
+
+        if (account && room) {
+            log('got account and room, joining ' + room);
+            let action = this.lookup_action('join-room');
+            action.activate(GLib.Variant.new('(ssu)',
+                                             [ account.get_object_path(),
+                                               '#' + room,
+                                               TP_CURRENT_TIME ]));
+            return;
+        }
+
+        log('no account match, opening details dialog..');
+        let detailsDialog = new Connections.ConnectionDetailsDialog(null);
+        detailsDialog.server_entry = port ? server + ':' + port : server;
+        detailsDialog.room = room;
+        detailsDialog.widget.transient_for = this._window.window;
+        detailsDialog.nick_entry.grab_focus();
+        detailsDialog.widget.show();
+        detailsDialog.widget.connect('response',
+            Lang.bind(this, function(widget) {
+                widget.destroy();
+            }));
+    },
+
+    _showMainWindow: function() {
+        log('checking if window exists');
         if (!this._window) {
+            log('creates main window');
             this._window = new MainWindow.MainWindow(this);
+            log('connect to destroy signal');
             this._window.window.connect('destroy', Lang.bind(this,
                 function() {
                     for (let id in this._pendingRequests)
                         this._pendingRequests[id].cancellable.cancel();
                     this.emitJS('prepare-shutdown');
             }));
+            log('shows the window');
             this._window.window.show_all();
-
+            log('lateInit chatroommanager');
             this._chatroomManager.lateInit();
         }
+            log('presents window');
         this._window.window.present();
     },
 
@@ -302,11 +384,11 @@ const Application = new Lang.Class({
 
         try {
             req.ensure_channel_finish(res);
-
             if (requestData.targetHandleType == Tp.HandleType.ROOM)
                 this._addSavedChannel(account, requestData.targetId);
         } catch (e if e.matches(Tp.Error, Tp.Error.DISCONNECTED)) {
             let error = account.connection_error;
+            log(account.connection_error);
             if (error == ConnectionError.ALREADY_CONNECTED &&
                 requestData.retry++ < MAX_RETRIES) {
                     this._retryRequest(requestData);

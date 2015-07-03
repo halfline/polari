@@ -9,6 +9,8 @@ const AccountsMonitor = imports.accountsMonitor;
 const Lang = imports.lang;
 const Signals = imports.signals;
 
+const TP_CURRENT_TIME = GLib.MAXUINT32;
+
 const ConnectionsDialog = new Lang.Class({
     Name: 'ConnectionsDialog',
 
@@ -254,6 +256,14 @@ const ConnectionDetails = new Lang.Class({
                this._nickEntry.get_text_length() > 0;
     },
 
+    get server_entry() {
+        return this._serverEntry;
+    },
+
+    get nick_entry() {
+        return this._nickEntry;
+    },
+
     save: function() {
         if (!this.can_confirm)
             return;
@@ -280,7 +290,16 @@ const ConnectionDetails = new Lang.Class({
 
         req.create_account_async(Lang.bind(this,
             function(r, res) {
-                req.create_account_finish(res); // TODO: Check for errors
+                let account = req.create_account_finish(res); // TODO: Check for errors
+                if (this.room) {
+                    log('room assigned, joining..');
+                    let app = Gio.Application.get_default();
+                    let action = app.lookup_action('join-room');
+                    action.activate(GLib.Variant.new('(ssu)',
+                                                     [ account.get_object_path(),
+                                                       '#' + this.room,
+                                                       TP_CURRENT_TIME ]));
+                }
             }));
     },
 
@@ -349,5 +368,18 @@ const ConnectionDetailsDialog = new Lang.Class({
                                     this._confirmButton, 'sensitive',
                                     GObject.BindingFlags.SYNC_CREATE);
         this.widget.get_content_area().add(this._details);
+    },
+    
+    set server_entry(server) {
+        let entry = this._details.server_entry;
+        entry.text = server;
+    },
+
+    set room(room) {
+        this._details.room = room;
+    },
+
+    get nick_entry() {
+        return this._details.nick_entry;
     }
 });

@@ -5,6 +5,7 @@ Exec=polari
 TryExec=polari
 Icon=polari
 Type=Application
+MimeType=x-scheme-handler/irc;
 StartupNotify=true
 DBusActivatable=true
 Actions=connections;
