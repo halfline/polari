@@ -28,6 +28,25 @@
     border-width: 0;
 }
 
+/*
+You can type here any CSS rule recognized by GTK+.
+You can temporarily disable this custom CSS by clicking on the “Pause” button above.
+
+Changes are applied instantly and globally, for the whole application.
+*/
+
+.polari-room-list .list-row .pending-messages-count {
+color: mix(@theme_fg_color, red, 0.6);
+}
+
+.polari-room-list .list-row {
+color: #245a86;
+}
+
+.polari-room-list .list-row.inactive {
+color: mix(@theme_fg_color, gray, 0.8);
+}
+
 .polari-input-area {
     background-image: none;
     background-color: @polari_dark_bg_color;

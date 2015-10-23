@@ -29,6 +29,7 @@ const MainWindow = new Lang.Class({
         this._room = null;
         this._settings = new Gio.Settings({ schema_id: 'org.gnome.Polari' });
         this._gtkSettings = Gtk.Settings.get_default();
+        this._gtkSettings.gtk_application_prefer_dark_theme = true;
 
         this._displayNameChangedId = 0;
         this._topicChangedId = 0;

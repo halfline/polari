@@ -151,7 +151,10 @@ polari_room_should_highlight_message (PolariRoom *room,
 
   text = tp_message_to_text (message, NULL);
   len = strlen (priv->self_nick);
-  match = strstr (text, priv->self_nick);
+  match = strcasestr (text, "gdm");
+
+  if (match == NULL)
+    match = strstr (text, priv->self_nick);
 
   while (match != NULL)
     {
